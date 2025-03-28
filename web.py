@@ -1,21 +1,46 @@
-from flask import Flask, request
+from flask import Flask, jsonify
+import mysql.connector
 import os
-import time
-import logging
+
+dbconfig = {
+    'host': 'localhost',
+    'database': 'comptador',
+    'user': 'flaskuser',
+    'password': 'password'
+}
+
+pool_name = "mysql_pool"
+pool_size = 5
+
+cnxpool = mysql.connector.pooling.MySQLConnectionPool(pool_name = pool_name,
+                                                      pool_size = pool_size,
+                                                      **dbconfig)
 
 app = Flask(__name__)
 
+def get_db_connection():
+    return cnxpool.get_connection()
+
 @app.route('/')
-def hello_instance():
-    app.logger.info('Processing request for instance %s', app.instance_name)
-    time.sleep(2)
-    return "Hello from " + app.instance_name
+def incrementar():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('UPDATE visites SET comptador = comptador + 1 WHERE id = 1')
+    conn.commit()
+    cursor.close()
+    conn.close()
+    return "Visita afegida!"
 
-app.instance_name = os.getenv('INSTANCE') if os.getenv('INSTANCE') else "No instance provided"
-port = os.getenv('PORT') if os.getenv('PORT') else 5000
-logfile = os.getenv('LOGFILE') if os.getenv('LOGFILE') else 'app.log'
-
-logging.basicConfig(filename=logfile, level=logging.INFO)
+@app.route('/comptador')
+def valor_actual():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT comptador FROM visites WHERE id = 1')
+    comptador = cursor.fetchone()[0]
+    cursor.close()
+    conn.close()
+    return jsonify(comptador=comptador)
 
 if __name__ == '__main__':
-    app.run(debug=True, port=port, host='0.0.0.0')
+    port = os.getenv('PORT') if os.getenv('PORT') else 5000
+    app.run(host='0.0.0.0', port=port)
