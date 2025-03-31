@@ -6,7 +6,7 @@ dbconfig = {
     'host': 'localhost',
     'database': 'comptador',
     'user': 'flaskuser',
-    'password': 'password'
+    'password': 'Xarxa25!'
 }
 
 pool_name = "mysql_pool"
