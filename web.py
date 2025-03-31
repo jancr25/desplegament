@@ -10,7 +10,7 @@ dbconfig = {
 }
 
 pool_name = "mysql_pool"
-pool_size = 5
+pool_size = 3
 
 cnxpool = mysql.connector.pooling.MySQLConnectionPool(pool_name = pool_name,
                                                       pool_size = pool_size,
